@@ -1,7 +1,7 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-<div class="create-post">
+<div class="create-post div-border">
     <h2>Create a New Post</h2>
     <form method="POST" action="{% url 'new-post' %}">
         {% csrf_token %}
@@ -13,13 +13,12 @@
         <button class="btn btn-primary">Create</button>
     </form>
 </div>
-<div class="all-posts">
+<div class="all-posts div-border">
     <h2>All Posts</h2>
     {% for post in all_posts %}
-        <div class="d-flex">
-            <p>{{ post.user.username }}</p>
+        <div class="post">
+            <p><strong>{{ post.user.username }}</strong>  {{ post.post_date }}</p>
             <p>{{ post.post_text }}</p>
-            <p>{{ post.post_date }}</p>
         </div>
     {% endfor %}
 </div>

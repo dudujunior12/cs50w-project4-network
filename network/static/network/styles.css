@@ -1,0 +1,30 @@
+/* Add border to div */
+
+.div-border{
+    padding: 2%;
+    border: 1px solid black;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+/* Index Page */
+
+.container{
+    margin-top: 2%;
+}
+
+.create-post h2{
+    padding-bottom: 5px;
+}
+
+.all-posts{
+    margin-top: 1%;
+}
+
+.all-posts h2{
+    padding-bottom: 10px;
+}
+
+.post{
+    border-top: 1px solid grey;
+    padding: 20px 20px;
+}
