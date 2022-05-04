@@ -1,14 +1,34 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
+from django.http import JsonResponse
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 
-from .models import User
+from .forms import *
+from .models import *
 
 
 def index(request):
-    return render(request, "network/index.html")
+    form = CreatePost()
+
+    return render(request, "network/index.html", {
+        "form": form,
+    })
+
+def new_post(request):
+    if request.method == "POST":
+        form = CreatePost(request.POST)
+        if form.is_valid():
+            user = get_object_or_404(User, username=request.user.username)
+            post_text = request.POST['post_text']
+            p = Post(user=user, post_text=post_text)
+            p.save()
+        else:
+            return JsonResponse({"message_error": "Couldn't create a new post"}, status=404)
+        return redirect("index")
+    else:
+        return JsonResponse({"message_error": "Require POST request method"}, status=404)
 
 
 def login_view(request):

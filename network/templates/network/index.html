@@ -1,5 +1,13 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    TODO
+    <form method="POST" action="{% url 'new-post' %}">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                {{ field }}
+            </div>
+        {% endfor %}
+        <button class="btn btn-primary">Create</button>
+    </form>
 {% endblock %}
