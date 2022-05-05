@@ -1,20 +1,9 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-<div class="create-post div-border">
-    <h2>Create a New Post</h2>
-    <form method="POST" action="{% url 'new-post' %}">
-        {% csrf_token %}
-        {% for field in form %}
-            <div class="form-group">
-                {{ field }}
-            </div>
-        {% endfor %}
-        <button class="btn btn-primary">Create</button>
-    </form>
-</div>
-<div class="posts div-border">
-    <h2>All Posts</h2>
-    {% include 'network/posts.html'%}
-</div>
+    {% include 'network/create_post.html' %}
+    <div class="posts div-border">
+        <h2>All Posts</h2>
+        {% include 'network/posts.html'%}
+    </div>
 {% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'network/layout.html' %}
+
+{% block body %}
+    {% include 'network/create_post.html'%}
+    <div class="posts div-border">
+        <h2>Following</h2>
+        {% include 'network/posts.html'%}
+    </div>
+{% endblock %}

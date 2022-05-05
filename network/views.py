@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from itertools import chain
 
 from .forms import *
 from .models import *
@@ -59,8 +60,6 @@ def profile(request, username):
             "following_count": following_count,
             "button": button
         }
-
-        print(button)
 
         return render(request, "network/profile.html", {
             "other_user": other_user, 
@@ -128,6 +127,28 @@ def unfollow(request, id):
         
 
     return redirect('profile', username=other_user)
+
+def following(request):
+    user = User.objects.get(username=request.user.username)
+    form = CreatePost()
+    
+    # Get following users
+    followings = Follow.objects.get(user=user).following.all()
+
+    # Get all posts sorted by the following users
+    posts = []
+    for following in followings:
+        posts.append(Post.objects.filter(user=following).order_by('-post_date'))
+
+    # Combine posts of different users
+    for i in range(len(posts) - 1):
+        combined_posts = posts[i] | posts[i+1]
+    
+
+    return render(request, 'network/following.html', {
+        "form": form,
+        "posts": combined_posts
+    })
 
 
 def login_view(request):
