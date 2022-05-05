@@ -31,6 +31,14 @@ def new_post(request):
     else:
         return JsonResponse({"message_error": "Require POST request method"}, status=404)
 
+def profile(request, username):
+    user = get_object_or_404(User, username=username)
+    if user:
+        posts = Post.objects.filter(user=user)
+        return render(request, "network/profile.html", {
+            "user": user, "posts": posts,
+        })
+    return render(request, "network/profile.html", {})
 
 def login_view(request):
     if request.method == "POST":
