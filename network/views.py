@@ -104,7 +104,6 @@ def follow(request, id):
 def unfollow(request, id):
     username = get_object_or_404(User, username=request.user.username)
     other_user = get_object_or_404(User, id=id)
-    print("pa")
     if request.method == "POST":
         follow_filter_user = Follow.objects.filter(user=username)
         follow_filter_other_user = Follow.objects.filter(user=other_user)
