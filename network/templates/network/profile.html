@@ -3,12 +3,17 @@
 {% block body %}
 <div class="header-profile div-border">
     <div class="name-follow">
-        <p>{{user.username}}</p>
-        <button class="btn btn-primary">Follow</button>
+        <p>{{other_user.username}}</p>
+        {% if other_user.username != request.user.username %}
+            <form method="POST" action="{% url 'follow' other_user.id %}">
+                {% csrf_token %}
+                <button class="btn btn-primary">Follow</button>
+            </form>
+        {% endif %}
     </div>
     <div class="follow-number">
-        <p>0 followers</p>
-        <p>0 following</p>
+        <p>{{ follow.followers_count }} followers</p>
+        <p>{{ follow.following_count }} following</p>
     </div>
 </div>
 <div class="posts div-border">

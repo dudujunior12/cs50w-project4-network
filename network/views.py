@@ -11,7 +11,7 @@ from .models import *
 
 def index(request):
     form = CreatePost()
-    posts = Post.objects.all()
+    posts = Post.objects.all().order_by("-post_date")
     return render(request, "network/index.html", {
         "form": form,
         "posts": posts,
@@ -32,13 +32,60 @@ def new_post(request):
         return JsonResponse({"message_error": "Require POST request method"}, status=404)
 
 def profile(request, username):
-    user = get_object_or_404(User, username=username)
-    if user:
-        posts = Post.objects.filter(user=user)
+    other_user = get_object_or_404(User, username=username)
+    
+    if other_user:
+        posts = Post.objects.filter(user=other_user).order_by("-post_date")
+
+        follow_filter = Follow.objects.filter(user=other_user)
+        if follow_filter:
+            follow_obj = Follow.objects.get(user=other_user)
+            followers_count = follow_obj.followers.count()
+            following_count = follow_obj.following.count()
+        else:
+            followers_count = 0
+            following_count = 0
+
+        follow = {
+            "followers_count": followers_count,
+            "following_count": following_count
+        }
+
         return render(request, "network/profile.html", {
-            "user": user, "posts": posts,
+            "other_user": other_user, 
+            "posts": posts,
+            "follow": follow,
         })
     return render(request, "network/profile.html", {})
+
+def follow(request, id):
+    username = get_object_or_404(User, username=request.user.username)
+    other_user = get_object_or_404(User, id=id)
+    if request.method == "POST":
+        follow_filter_user = Follow.objects.filter(user=username)
+        follow_filter_other_user = Follow.objects.filter(user=other_user)
+
+        #Check if exist a follow database for the user, if not, it creates one. Then it adds the other user to the following field
+        if follow_filter_user:
+            follow_obj_user = Follow.objects.get(user=username)
+            follow_obj_user.following.add(other_user)
+            follow_obj_user.save()
+        else:
+            follow_obj_user = Follow.objects.create(user=username)
+            follow_obj_user.following.add(other_user)
+            follow_obj_user.save()
+        
+        #Check if exist a follow database for the other user, if not, it creates one. Then it adds the user to the follower field
+        if follow_filter_other_user:
+            follow_obj_other_user = Follow.objects.get(user=other_user)
+            follow_obj_other_user.followers.add(username)
+            follow_obj_other_user.save()
+        else:
+            follow_obj_other_user = Follow.objects.create(user=other_user)
+            follow_obj_other_user.followers.add(username)
+            follow_obj_other_user.save()
+
+    return redirect('profile', username=other_user)
 
 def login_view(request):
     if request.method == "POST":
@@ -82,6 +129,10 @@ def register(request):
         try:
             user = User.objects.create_user(username, email, password)
             user.save()
+
+            follow = Follow.objects.create(user=user)
+            follow.save()
+
         except IntegrityError:
             return render(request, "network/register.html", {
                 "message": "Username already taken."
