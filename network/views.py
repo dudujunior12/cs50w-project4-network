@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from itertools import chain
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from .forms import *
 from .models import *
@@ -13,10 +13,21 @@ from .models import *
 
 def index(request):
     form = CreatePost()
-    posts = Post.objects.all().order_by("-post_date")
+    post_list = Post.objects.all().order_by("-post_date")
+    paginator = Paginator(post_list, 10)
+
+    page = request.GET.get('page')
+    try:
+        posts = paginator.page(page)
+    except PageNotAnInteger:
+        posts = paginator.page(1)
+    except EmptyPage:
+        posts = paginator.page(paginator.num_pages)
+
     return render(request, "network/index.html", {
         "form": form,
         "posts": posts,
+        "page_range": paginator.page_range
     })
 
 @login_required
@@ -37,7 +48,18 @@ def new_post(request):
 def profile(request, username):
     other_user = get_object_or_404(User, username=username)
     if other_user:
-        posts = Post.objects.filter(user=other_user).order_by("-post_date")
+
+        post_list = Post.objects.filter(user=other_user).order_by("-post_date")
+        paginator = Paginator(post_list, 10)
+        page = request.GET.get('page')
+        try:
+            posts = paginator.page(page)
+        except PageNotAnInteger:
+            posts = paginator.page(1)
+        except EmptyPage:
+            posts = paginator.page(paginator.num_pages)
+        print(posts)
+
         follow_other_user_filter = Follow.objects.filter(user=other_user)
         if follow_other_user_filter:
             follow_other_user_obj = Follow.objects.get(user=other_user)
@@ -65,6 +87,7 @@ def profile(request, username):
             "other_user": other_user, 
             "posts": posts,
             "follow": follow,
+            "page_range": paginator.page_range
         })
     return render(request, "network/profile.html", {})
 
@@ -136,18 +159,38 @@ def following(request):
     followings = Follow.objects.get(user=user).following.all()
 
     # Get all posts sorted by the following users
-    posts = []
+    post_list = []
     for following in followings:
-        posts.append(Post.objects.filter(user=following).order_by('-post_date'))
+        post_list.append(Post.objects.filter(user=following).order_by('-post_date'))
 
+    combined_post = None
     # Combine posts of different users
-    for i in range(len(posts) - 1):
-        combined_posts = posts[i] | posts[i+1]
+    for i in range(len(post_list) - 1):
+        combined_post = post_list[i] | post_list[i+1]
     
+
+    if combined_post:
+        paginator = Paginator(combined_post, 10)
+        page = request.GET.get('page')
+        try:
+            posts = paginator.page(page)
+        except PageNotAnInteger:
+            posts = paginator.page(1)
+        except EmptyPage:
+            posts = paginator.page(paginator.num_pages)
+        
+        return render(request, 'network/following.html', {
+            "form": form,
+            "posts": posts,
+            "page_range": paginator.page_range,
+        })
+
+    posts = post_list
+    print(posts)
 
     return render(request, 'network/following.html', {
         "form": form,
-        "posts": combined_posts
+        "posts": posts,
     })
 
 
