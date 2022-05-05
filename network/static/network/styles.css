@@ -1,8 +1,26 @@
+p{
+    margin: 0;
+    padding: 0;
+}
 /* Layout */
 
 .container{
     margin-top: 2%;
 }
+
+.posts{
+    margin-top: 1%;
+}
+
+.posts h2{
+    padding-bottom: 10px;
+}
+
+.post{
+    border-top: 1px solid grey;
+    padding: 20px 20px;
+}
+
 
 /* Add border to div */
 
@@ -22,26 +40,32 @@ svg{
     padding-bottom: 5px;
 }
 
-.all-posts{
-    margin-top: 1%;
-}
-
-.all-posts h2{
-    padding-bottom: 10px;
-}
-
-.post{
-    border-top: 1px solid grey;
-    padding: 20px 20px;
-}
-
 .like{
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.like p{
-    margin: 0;
-    padding: 0;
+/* Profile */
+
+.header-profile{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.name-follow{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.name-follow p{
+    font-size: 22px;
+}
+
+.follow-number{
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }

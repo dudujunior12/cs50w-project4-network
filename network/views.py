@@ -11,10 +11,10 @@ from .models import *
 
 def index(request):
     form = CreatePost()
-    all_posts = Post.objects.all()
+    posts = Post.objects.all()
     return render(request, "network/index.html", {
         "form": form,
-        "all_posts": all_posts,
+        "posts": posts,
     })
 
 def new_post(request):
