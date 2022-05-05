@@ -5,10 +5,17 @@
     <div class="name-follow">
         <p>{{other_user.username}}</p>
         {% if other_user.username != request.user.username %}
-            <form method="POST" action="{% url 'follow' other_user.id %}">
-                {% csrf_token %}
-                <button class="btn btn-primary">Follow</button>
-            </form>
+            {% if follow.button == "Follow"%}
+                <form method="POST" action="{% url 'follow' other_user.id %}">
+                    {% csrf_token %}
+                    <button class="btn btn-primary">Follow</button>
+                </form>
+            {% else %}
+                <form method="POST" action="{% url 'unfollow' other_user.id %}">
+                    {% csrf_token %}
+                    <button class="btn btn-primary">Unfollow</button>
+                </form>
+            {% endif %}
         {% endif %}
     </div>
     <div class="follow-number">

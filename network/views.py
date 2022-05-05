@@ -35,23 +35,32 @@ def new_post(request):
 
 def profile(request, username):
     other_user = get_object_or_404(User, username=username)
-    
     if other_user:
         posts = Post.objects.filter(user=other_user).order_by("-post_date")
+        follow_other_user_filter = Follow.objects.filter(user=other_user)
+        if follow_other_user_filter:
+            follow_other_user_obj = Follow.objects.get(user=other_user)
 
-        follow_filter = Follow.objects.filter(user=other_user)
-        if follow_filter:
-            follow_obj = Follow.objects.get(user=other_user)
-            followers_count = follow_obj.followers.count()
-            following_count = follow_obj.following.count()
+            followers_count = follow_other_user_obj.followers.count()
+            following_count = follow_other_user_obj.following.count()
+
+            followers = follow_other_user_obj.followers.all()
+            if User.objects.get(username=request.user.username) in followers:
+                button = "Unfollow"
+            else:
+                button = "Follow"
         else:
             followers_count = 0
             following_count = 0
 
+
         follow = {
             "followers_count": followers_count,
-            "following_count": following_count
+            "following_count": following_count,
+            "button": button
         }
+
+        print(button)
 
         return render(request, "network/profile.html", {
             "other_user": other_user, 
@@ -69,26 +78,58 @@ def follow(request, id):
         follow_filter_other_user = Follow.objects.filter(user=other_user)
 
         #Check if exist a follow database for the user, if not, it creates one. Then it adds the other user to the following field
-        if follow_filter_user:
+        if follow_filter_user and follow_filter_other_user:
             follow_obj_user = Follow.objects.get(user=username)
             follow_obj_user.following.add(other_user)
             follow_obj_user.save()
-        else:
-            follow_obj_user = Follow.objects.create(user=username)
-            follow_obj_user.following.add(other_user)
-            follow_obj_user.save()
-        
-        #Check if exist a follow database for the other user, if not, it creates one. Then it adds the user to the follower field
-        if follow_filter_other_user:
+            
             follow_obj_other_user = Follow.objects.get(user=other_user)
             follow_obj_other_user.followers.add(username)
             follow_obj_other_user.save()
-        else:
+
+        if not follow_filter_user:
+            follow_obj_user = Follow.objects.create(user=username)
+            follow_obj_user.following.add(other_user)
+            follow_obj_user.save()
+
+        if not follow_filter_other_user:
             follow_obj_other_user = Follow.objects.create(user=other_user)
             follow_obj_other_user.followers.add(username)
             follow_obj_other_user.save()
+        
 
     return redirect('profile', username=other_user)
+
+@login_required
+def unfollow(request, id):
+    username = get_object_or_404(User, username=request.user.username)
+    other_user = get_object_or_404(User, id=id)
+    print("pa")
+    if request.method == "POST":
+        follow_filter_user = Follow.objects.filter(user=username)
+        follow_filter_other_user = Follow.objects.filter(user=other_user)
+
+        #Check if exist a follow database for the user, if not, it creates one. Then it adds the other user to the following field
+        if follow_filter_user and follow_filter_other_user:
+            follow_obj_user = Follow.objects.get(user=username)
+            follow_obj_user.following.remove(other_user)
+            follow_obj_user.save()
+            
+            follow_obj_other_user = Follow.objects.get(user=other_user)
+            follow_obj_other_user.followers.remove(username)
+            follow_obj_other_user.save()
+
+        if not follow_filter_user:
+            follow_obj_user = Follow.objects.create(user=username)
+            follow_obj_user.save()
+
+        if not follow_filter_other_user:
+            follow_obj_other_user = Follow.objects.create(user=other_user)
+            follow_obj_other_user.save()
+        
+
+    return redirect('profile', username=other_user)
+
 
 def login_view(request):
     if request.method == "POST":
