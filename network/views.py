@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 
 from .forms import *
 from .models import *
@@ -17,6 +18,7 @@ def index(request):
         "posts": posts,
     })
 
+@login_required
 def new_post(request):
     if request.method == "POST":
         form = CreatePost(request.POST)
@@ -58,6 +60,7 @@ def profile(request, username):
         })
     return render(request, "network/profile.html", {})
 
+@login_required
 def follow(request, id):
     username = get_object_or_404(User, username=request.user.username)
     other_user = get_object_or_404(User, id=id)
