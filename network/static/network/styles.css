@@ -31,7 +31,25 @@ a:hover{
     padding: 20px 20px;
 }
 
+.post-info{
+    display: flex;
+    width: 100%;
+    align-items: center;
+    height: 50px;
+}
 
+.post-info p{
+    padding-right: 1%;
+}
+
+.post-p{
+    padding-top: 2px;
+    padding-bottom: 1%;
+}
+
+#btn-form-save{
+    margin-bottom: 1%;
+}
 /* Add border to div */
 
 .div-border{

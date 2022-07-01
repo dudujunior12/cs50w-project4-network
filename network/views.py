@@ -6,6 +6,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 from .forms import *
 from .models import *
@@ -195,17 +197,20 @@ def following(request):
         "posts": posts,
     })
 
-
+@csrf_exempt
+@login_required
 def edit_post(request, id):
     if request.method == "POST":
         user = User.objects.get(username=request.user.username)
         post = Post.objects.get(id=id, user=user)
-        post.post_text = request.POST['post_text']
+        data = json.loads(request.body)
+        if data.get("post_text") is not None:
+            post.post_text = data['post_text']
+        post.save()
+        return JsonResponse({"message": "Post edited successfully."}, status=201)
     else:
         return JsonResponse({"message_error": "Require POST request method"}, status=404)
 
-
-    return JsonResponse({"message_error": "Sexo"}, status=201)
 
 def login_view(request):
     if request.method == "POST":
