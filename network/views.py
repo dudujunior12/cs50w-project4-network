@@ -18,7 +18,17 @@ def index(request):
     post_list = Post.objects.all().order_by("-post_date")
     paginator = Paginator(post_list, 10)
 
+    try:
+        user = User.objects.get(username=request.user.username)
+        like = Like.objects.get(user=user)
+        liked_id = []
+        for liked_posts in like.posts.all():
+            liked_id.append(liked_posts.id)
+    except:
+        liked_id = []
+
     page = request.GET.get('page')
+
     try:
         posts = paginator.page(page)
     except PageNotAnInteger:
@@ -29,7 +39,8 @@ def index(request):
     return render(request, "network/index.html", {
         "form": form,
         "posts": posts,
-        "page_range": paginator.page_range
+        "page_range": paginator.page_range,
+        "liked_id": liked_id
     })
 
 @login_required
@@ -49,6 +60,15 @@ def new_post(request):
 
 def profile(request, username):
     other_user = get_object_or_404(User, username=username)
+
+    try:
+        like = Like.objects.get(user=user)
+        liked_id = []
+        for liked_posts in like.posts.all():
+            liked_id.append(liked_posts.id)
+    except:
+        liked_id = []
+
     if other_user:
 
         post_list = Post.objects.filter(user=other_user).order_by("-post_date")
@@ -82,14 +102,16 @@ def profile(request, username):
         follow = {
             "followers_count": followers_count,
             "following_count": following_count,
-            "button": button
+            "button": button,
+            "liked_id": liked_id
         }
 
         return render(request, "network/profile.html", {
             "other_user": other_user, 
             "posts": posts,
             "follow": follow,
-            "page_range": paginator.page_range
+            "page_range": paginator.page_range,
+            "liked_id": liked_id
         })
     return render(request, "network/profile.html", {})
 
@@ -158,6 +180,16 @@ def following(request):
     user = User.objects.get(username=request.user.username)
     form = CreatePost()
     
+    try:
+        like = Like.objects.get(user=user)
+        liked_id = []
+        for liked_posts in like.posts.all():
+            liked_id.append(liked_posts.id)
+    except:
+        liked_id = []
+
+    page = request.GET.get('page')
+
     # Get following users
     followings = Follow.objects.get(user=user).following.all()
 
@@ -186,6 +218,7 @@ def following(request):
             "form": form,
             "posts": posts,
             "page_range": paginator.page_range,
+            "liked_id": liked_id
         })
 
     posts = []
@@ -195,6 +228,7 @@ def following(request):
     return render(request, 'network/following.html', {
         "form": form,
         "posts": posts,
+        "liked_id": liked_id
     })
 
 @csrf_exempt
@@ -207,7 +241,40 @@ def edit_post(request, id):
         if data.get("post_text") is not None:
             post.post_text = data['post_text']
         post.save()
-        return JsonResponse({"message": "Post edited successfully."}, status=201)
+        return JsonResponse({"message": "Post edited successfully.", "post_text": post.post_text}, status=201)
+    else:
+        return JsonResponse({"message_error": "Require POST request method"}, status=404)
+
+@csrf_exempt
+@login_required
+def like(request, id):
+    if request.method == "POST":
+        user = User.objects.get(username=request.user.username)
+        post = Post.objects.get(id=id)
+        data = json.loads(request.body)
+        if Like.objects.filter(user=user):
+            like_obj = Like.objects.get(user=user)
+            if data.get("liked") is not False and not None:
+                like_obj.posts.add(post)
+            if data.get("liked") is False:
+                like_obj.posts.remove(post)
+            like_obj.save()
+        else:
+            new_like = Like.objects.create(user=user)
+            if data.get("liked") is not False and not None:
+                new_like.posts.add(post)
+            if data.get("liked") is False:
+                new_like.posts.remove(post)
+            new_like.save()
+
+
+        like_count = Like.objects.filter(posts__in=[post]).count()
+        post.like_count = like_count
+        post.save()
+        
+        
+        return JsonResponse({"message": "Like updated", "like_count": like_count}, status=201)
+
     else:
         return JsonResponse({"message_error": "Require POST request method"}, status=404)
 

@@ -50,6 +50,8 @@ a:hover{
 #btn-form-save{
     margin-bottom: 1%;
 }
+
+
 /* Add border to div */
 
 .div-border{
@@ -62,6 +64,12 @@ a:hover{
 
 svg{
     width: 1.25em;
+    cursor: pointer;
+    
+}
+
+.btn-like:hover{
+    fill: red;
 }
 
 .create-post h2{

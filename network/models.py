@@ -9,6 +9,7 @@ class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="post_user")
     post_text = models.TextField()
     post_date = models.DateTimeField(auto_now_add=True)
+    like_count = models.IntegerField()
 
     def __str__(self):
         return f"{self.user} posted at {self.post_date}"
@@ -23,10 +24,10 @@ class Follow(models.Model):
 
 class Like(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="like_user")
-    post = models.ManyToManyField(Post, related_name="like_post")
+    posts = models.ManyToManyField(Post, related_name="liked_posts")
 
     def __str__(self):
-        return f"{self.user} at {self.post_date}"
+        return f"{self.user}"
 
 
 
