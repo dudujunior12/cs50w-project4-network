@@ -151,6 +151,7 @@ def unfollow(request, id):
 
     return redirect('profile', username=other_user)
 
+@login_required
 def following(request):
     user = User.objects.get(username=request.user.username)
     form = CreatePost()
@@ -185,14 +186,26 @@ def following(request):
             "page_range": paginator.page_range,
         })
 
-    posts = post_list
-    print(posts)
-
+    posts = []
+    for posts_out_list in post_list:
+        posts = posts_out_list
+    
     return render(request, 'network/following.html', {
         "form": form,
         "posts": posts,
     })
 
+
+def edit_post(request, id):
+    if request.method == "POST":
+        user = User.objects.get(username=request.user.username)
+        post = Post.objects.get(id=id, user=user)
+        post.post_text = request.POST['post_text']
+    else:
+        return JsonResponse({"message_error": "Require POST request method"}, status=404)
+
+
+    return JsonResponse({"message_error": "Sexo"}, status=201)
 
 def login_view(request):
     if request.method == "POST":

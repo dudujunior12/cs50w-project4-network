@@ -8,6 +8,11 @@
         </svg>
         <p>0</p>
     </div>
+    {% if post.user.username == request.user.username %}
+    <div class="edit">
+        <button id="btn-edit" class="btn btn-primary">Edit</button>
+    </div>
+    {% endif %}
 </div>
 {% endfor %}
 
