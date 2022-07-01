@@ -62,6 +62,7 @@ def profile(request, username):
     other_user = get_object_or_404(User, username=username)
 
     try:
+        user = User.objects.get(username=request.user.username)
         like = Like.objects.get(user=user)
         liked_id = []
         for liked_posts in like.posts.all():
@@ -90,9 +91,12 @@ def profile(request, username):
             following_count = follow_other_user_obj.following.count()
 
             followers = follow_other_user_obj.followers.all()
-            if User.objects.get(username=request.user.username) in followers:
-                button = "Unfollow"
-            else:
+            try:
+                if User.objects.get(username=request.user.username) in followers:
+                    button = "Unfollow"
+                else:
+                    button = "Follow"
+            except:
                 button = "Follow"
         else:
             followers_count = 0
