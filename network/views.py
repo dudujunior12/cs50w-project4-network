@@ -15,9 +15,8 @@ from .models import *
 
 def index(request):
     form = CreatePost()
-    post_list = Post.objects.all().order_by("-post_date")
-    paginator = Paginator(post_list, 10)
 
+    # Get liked posts id
     try:
         user = User.objects.get(username=request.user.username)
         like = Like.objects.get(user=user)
@@ -27,8 +26,12 @@ def index(request):
     except:
         liked_id = []
 
-    page = request.GET.get('page')
 
+    # Paginator
+    post_list = Post.objects.all().order_by("-post_date")
+    paginator = Paginator(post_list, 10)
+    page = request.GET.get('page')
+    
     try:
         posts = paginator.page(page)
     except PageNotAnInteger:
@@ -46,12 +49,14 @@ def index(request):
 @login_required
 def new_post(request):
     if request.method == "POST":
+        # Form to create a new post
         form = CreatePost(request.POST)
         if form.is_valid():
             user = get_object_or_404(User, username=request.user.username)
             post_text = request.POST['post_text']
             p = Post(user=user, post_text=post_text)
             p.save()
+
         else:
             return JsonResponse({"message_error": "Couldn't create a new post"}, status=404)
         return redirect("index")
@@ -60,7 +65,8 @@ def new_post(request):
 
 def profile(request, username):
     other_user = get_object_or_404(User, username=username)
-
+    
+    # Get liked posts id
     try:
         user = User.objects.get(username=request.user.username)
         like = Like.objects.get(user=user)
@@ -70,8 +76,8 @@ def profile(request, username):
     except:
         liked_id = []
 
+    # Checks if other_user exists, then gets all posts
     if other_user:
-
         post_list = Post.objects.filter(user=other_user).order_by("-post_date")
         paginator = Paginator(post_list, 10)
         page = request.GET.get('page')
@@ -81,8 +87,8 @@ def profile(request, username):
             posts = paginator.page(1)
         except EmptyPage:
             posts = paginator.page(paginator.num_pages)
-        print(posts)
 
+        # Filter followers and following count
         follow_other_user_filter = Follow.objects.filter(user=other_user)
         if follow_other_user_filter:
             follow_other_user_obj = Follow.objects.get(user=other_user)
@@ -91,14 +97,14 @@ def profile(request, username):
             following_count = follow_other_user_obj.following.count()
 
             followers = follow_other_user_obj.followers.all()
+            # Change button to Follow/Unfollow if current user follows it or not
             try:
                 if User.objects.get(username=request.user.username) in followers:
                     button = "Unfollow"
-                else:
-                    button = "Follow"
             except:
                 button = "Follow"
         else:
+            button = "Follow"
             followers_count = 0
             following_count = 0
 
@@ -239,6 +245,7 @@ def following(request):
 @login_required
 def edit_post(request, id):
     if request.method == "POST":
+        # Get data from fetch, then updates the post
         user = User.objects.get(username=request.user.username)
         post = Post.objects.get(id=id, user=user)
         data = json.loads(request.body)
@@ -253,9 +260,12 @@ def edit_post(request, id):
 @login_required
 def like(request, id):
     if request.method == "POST":
+        # Get data from fetch, creates a Like object and add/remove a post to it, if object already exists just add/remove
+
         user = User.objects.get(username=request.user.username)
         post = Post.objects.get(id=id)
         data = json.loads(request.body)
+
         if Like.objects.filter(user=user):
             like_obj = Like.objects.get(user=user)
             if data.get("liked") is not False and not None:
@@ -271,11 +281,10 @@ def like(request, id):
                 new_like.posts.remove(post)
             new_like.save()
 
-
+        # Filter all liked posts and count
         like_count = Like.objects.filter(posts__in=[post]).count()
         post.like_count = like_count
         post.save()
-        
         
         return JsonResponse({"message": "Like updated", "like_count": like_count}, status=201)
 
